@@ -1,0 +1,86 @@
+//Añadir QOS al sistema 
+
+//Verificamos si disponemos de más QOS en el sistema con: 
+sacctmgr show qos
+      Name   Priority  GraceTime    Preempt   PreemptExemptTime PreemptMode                                    Flags UsageThres UsageFactor       GrpTRES   GrpTRESMins GrpTRESRunMin GrpJobs GrpSubmit     GrpWall       MaxTRES MaxTRESPerNode   MaxTRESMins     MaxWall     MaxTRESPU MaxJobsPU MaxSubmitPU     MaxTRESPA MaxJobsPA MaxSubmitPA       MinTRES
+---------- ---------- ---------- ---------- ------------------- ----------- ---------------------------------------- ---------- ----------- ------------- ------------- ------------- ------- --------- ----------- ------------- -------------- ------------- ----------- ------------- --------- ----------- ------------- --------- ----------- -------------
+    normal          0   00:00:00                                    cluster                                                        1.000000                                                                                                                       
+    
+[usuarioAdmin@supercomp ~]$ sacctmgr show qos format=name
+      Name
+----------
+    normal
+    
+//Creación de QoS en caso de no tenerla:
+//Creamos la QoS "zebra"
+sacctmgr add qos zebra
+[sudo] password for usuarioAdmin:
+ Adding QOS(s)
+  zebra
+ Settings
+ 	 Description    = zebra
+Would you like to commit changes? (You have 30 seconds to decide)
+(N/y): y
+
+
+
+
+//Creación de un account o grupo de usuarios:
+sudo sacctmgr add account (NombreCuenta) Description="Descripcion de la cuenta"
+ 	Adding Account(s)
+  	(NombreCuenta)
+ Settings
+  	Description     = "Descripcion de la cuenta"
+  	Organization    = Parent/Account Name
+ Associations
+ 	 A = (NombreCuenta) C = escalera
+ 	 A = (NombreCuenta) C = simanfor
+ Settings
+  	Parent        = root
+Would you like to commit changes? (You have 30 seconds to decide)
+Y or N please
+(N/y): y
+[usuarioAdmin@supercomp slurm]$
+
+
+//Asociamos la cuenta a la QOS
+
+sudo sacctmgr add account (NombreCuenta) qos=zebra
+
+
+//Añadir usuarios a la cuenta y a la QOS
+
+sacctmgr add user <nombre_usuario> account=<nombreCuenta> partition=<nombreParticion> qos=<nombre_qos>
+
+sudo sacctmgr add user vanessa account=<nombre_cuenta> partition=<nombre_particion> qos=zebra
+
+//Es importante relacionar al usuario Slurm en esta cuenta y con esta QOS
+
+sudo sacctmgr add user slurm account=<nombre_cuenta> partition=<nombre_particion> qos=zebra
+
+//Para ver que se ha creado todo correctamente:
+
+sudo sacctmgr show association tree format=account,user%20,partition%30,qos%30
+
+[usuarioAdmin@supercomp slurm]$ sacctmgr show association tree format=account,user%20,partition%30,qos%30
+
+[usuarioAdmin@supercomp ~]$ sudo sacctmgr show association tree format=account,user%20,partition%30,qos%30
+[sudo] password for usuarioAdmin:
+Account                              User                      Partition                            QOS
+-------------------- -------------------- ------------------------------ ------------------------------
+root                                                                                             normal
+ root                                root                                                        normal
+<nombreCuenta>                                                                                   normal
+ <nombreCuenta>                      usuario1                   <nombreParticion>                 zebra
+ <nombreCuenta>                      usuario2                   <nombreParticion>                  zebra
+ <nombreCuenta>                      usuario3                   <nombreParticion>                  zebra
+ <nombreCuenta>                      usuario4                   <nombreParticion>                 normal
+ 
+ 
+ [usuarioAdmin@supercomp ~]$ sacctmgr show qos format=name
+      Name
+----------
+    normal
+     zebra
+[usuarioAdmin@supercomp ~]$
+  

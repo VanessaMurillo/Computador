@@ -1,1 +1,2 @@
 # computador
+Gestor Slurm
